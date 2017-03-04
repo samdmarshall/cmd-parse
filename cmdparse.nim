@@ -1,7 +1,8 @@
 import os
+import influx
+import tables
 import strutils
 import parseopt2
-import httpclient
 
 var database_name = ""
 for kind, key, value in getopt():
@@ -22,8 +23,16 @@ try:
   if database_name.len > 0:
     let command = args[args.low()]
     let arguments = args[1..args.high()].join(" ")
-    let body = "cmd_hist command=\"" & command & "\",arguments=\"" & arguments & "\",location=\"" & getEnv("PWD") & "\""
-    var client = newHttpClient()
-    discard client.postContent("http://localhost:8086/write?db=" & database_name, body)
+    
+    let influxdb = InfluxDB(protocol: HTTP, host: "localhost", port: 8086)
+    
+    let values = @{
+      "command": command,
+      "arguments": arguments,
+      "location": getEnv("PWD"),
+    }.toTable
+    let write_data = LineProtocol(measurement: "cmd_hist", fields: values)
+    
+    discard influxdb.write("fish_history", @[write_data])
 except:
   discard
