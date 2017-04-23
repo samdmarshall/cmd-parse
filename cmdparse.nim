@@ -33,7 +33,7 @@ try:
       "arguments": arguments,
       "location": getEnv("PWD"),
     }.toTable
-    let write_data = LineProtocol(measurement: "cmd_hist", fields: values)
+    let write_data = LineProtocol(measurement: "commands", fields: values)
     
     discard influxdb.write("fish_history", @[write_data])
 except:
